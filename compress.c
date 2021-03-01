@@ -37,14 +37,6 @@ int main(int argc, char *argv[])
 	if(argc > 1)
 		readfile(argv[1], &heap);
 
-	printf("%u\n", heap.num_elements);
-	printf("%u\n", heap.size);
-	for(i = 0; i < heap.num_elements; i++)
-	{
-		printf("%c ", heap.heap[i]->c);
-	}
-	printf("\n");
-
 	bbuffer_init(&bb1);
 	heap_copyfreqs(&heap, &bb1);
 
@@ -63,20 +55,18 @@ int main(int argc, char *argv[])
 
 	/* Calculate how many untouched bits will be at the end of the file */
 	bits_left = (bb2.bitptr + bb1.bitptr + 3) % 8 ? 8 - ((bb2.bitptr + bb1.bitptr + 3) % 8) : 0;
-	printf("bits_left = %u\n", bits_left);
 	bbuffer_addnum(&bb1, bits_left, 2, 3);
 
-	printf("bb1.bitptr = %u\nbb2.bitptr = %u\nb1 + b2 = %u\n", bb1.bitptr, bb2.bitptr, bb1.bitptr + bb2.bitptr);
 
 	/* Merge both buffers to prepare for writing to file */
 	bbuffer_merge(&bb1, &bb2);
 	bbuffer_free(&bb2);
 
-	printf("merged bitptr: %u\n", bb1.bitptr);
-
 	FILE *f = fopen("compress.out", "wb");
 
 	fwrite(bb1.buffer, sizeof(char), ((bb1.bitptr) / 8) + !!bits_left, f);
+
+	fclose(f);
 
 	return 0;
 }

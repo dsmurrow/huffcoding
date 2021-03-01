@@ -89,7 +89,6 @@ int main(int argc, char *argv[])
 	 * are used to represent the counts of each character */
 	fread(&bpn, sizeof(char), 1, f);
 
-	printf("%d\n", bpn);
 
 	/* The next 4 bytes holds information about how many of the
 	 * following bits are storing character-count data */	
@@ -98,8 +97,6 @@ int main(int argc, char *argv[])
 		fread(&hold, sizeof(char), 1, f);
 		num_bits |= hold << (8 * (3 - i));
 	}
-
-	printf("%d\n", num_bits);
 
 	bbuffer_init(&buffer);
 	/* The rest of the file holds the huffman-encoded bit
@@ -114,20 +111,12 @@ int main(int argc, char *argv[])
 	heap.heap = malloc(heap.size * sizeof(cnode_t*));
 
 	fill_heap(&buffer, &heap, bpn, &ptr);
-	for(i = 0; i < heap.num_elements; i++)
-		printf("%c-%u ", heap.heap[i]->c, heap.heap[i]->count);
-	printf("\n");
 
-
-	printf("bitptr before: %u\n", buffer.bitptr);
 	buffer.bitptr -= getnbits(&buffer, 3, &ptr);
-	printf("bitptr after: %u\n", buffer.bitptr);
 
 	tree = heap_maketree(&heap);
 
 	write(&buffer, tree, &ptr);
-
-	printf("ptr: %u\n", ptr);
 
 	return 0;
 }
