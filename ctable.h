@@ -3,24 +3,24 @@
 
 typedef struct cbitnode
 {
-	char c;
+	unsigned int c;
 	char *bits;
-	unsigned short length;
+	unsigned int length;
 }
 cbnode_t;
 
 typedef struct ctable
 {
 	cbnode_t *table;
-	unsigned short num_elements;
-	unsigned short size;
+	unsigned int num_elements;
+	unsigned int size;
 }
 ctable_t;
 
-int ctable_init(ctable_t*, unsigned short);
+int ctable_init(ctable_t*, unsigned int);
 void ctable_free(ctable_t*);
 
-cbnode_t *ctable_find(ctable_t*, char);
+cbnode_t *ctable_find(ctable_t*, unsigned int);
 int ctable_insert(ctable_t*, cbnode_t);
 
 #endif

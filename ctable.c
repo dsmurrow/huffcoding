@@ -2,7 +2,7 @@
 
 #include <stdlib.h>
 
-int ctable_init(ctable_t *table, unsigned short size)
+int ctable_init(ctable_t *table, unsigned int size)
 {
 	table->num_elements = 0;
 	table->size = size;
@@ -16,7 +16,7 @@ int ctable_init(ctable_t *table, unsigned short size)
 
 void ctable_free(ctable_t *table)
 {
-	unsigned short i;
+	unsigned int i;
 	for(i = 0; i < table->size; i++)
 		if(table->table[i].bits) free(table->table[i].bits);
 
@@ -47,15 +47,15 @@ static int expand(ctable_t *table)
 	return 1;
 }
 
-static unsigned short hash(char c, unsigned short table_size)
+static unsigned int hash(unsigned int c, unsigned int table_size)
 {
 	unsigned short key = c;
 	return (42227 * key + 22) % table_size;
 }
 
-cbnode_t *ctable_find(ctable_t *table, char c)
+cbnode_t *ctable_find(ctable_t *table, unsigned int c)
 {
-	unsigned short index = hash(c, table->size), i = index;
+	unsigned int index = hash(c, table->size), i = index;
 	cbnode_t *t = table->table;
 
 	while(t[i].c != c && t[i].c != 0 && i != (index - 1 + table->size) % table->size)

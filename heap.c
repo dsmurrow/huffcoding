@@ -4,7 +4,7 @@
 
 #define HEAP_INITIAL_SIZE 14
 
-int cnode_init(cnode_t *node, char c)
+int cnode_init(cnode_t *node, unsigned int c)
 {
 	node->c = c;
 	node->count = 1;
@@ -34,7 +34,7 @@ void heap_free(heap_t *heap)
 	free(heap->heap);
 }
 
-cnode_t *heap_find(heap_t *heap, char c)
+cnode_t *heap_find(heap_t *heap, unsigned int c)
 {
 	unsigned int i;
 	for(i = 0; i < heap->num_elements && heap->heap[i]->c != c; i++);
@@ -113,7 +113,7 @@ int heap_insert(heap_t *heap, cnode_t *node)
 	return 1;
 }
 
-int heap_addc(heap_t *heap, char c)
+int heap_addc(heap_t *heap, unsigned int c)
 {
 	cnode_t *f = heap_find(heap, c);
 	if(f)
@@ -147,9 +147,25 @@ cnode_t *heap_getmin(heap_t *heap)
 	return swp;
 }
 
+static char num_bytes(unsigned int n)
+{
+	char msb = 31;
+
+	while(msb > 0 && !(n & (1 << msb)))
+		msb--;
+
+	if(msb > 23)
+		return 4;
+	if(msb > 15)
+		return 3;
+	if(msb > 7)
+		return 2;
+	return 1;
+}
+
 int heap_copyfreqs(heap_t *heap, bbuffer_t *buffer)
 {
-	unsigned char bpn;
+	unsigned char bpn, bytes;
 	unsigned int num_bits, most_letters = 0;
 	cnode_t *last_node;
 	heap_t new_heap;
@@ -182,14 +198,16 @@ int heap_copyfreqs(heap_t *heap, bbuffer_t *buffer)
 
 
 	bbuffer_addnum(buffer, bpn, 7, 8);
-	bbuffer_addnum(buffer, num_bits, 31, 32);
+	bbuffer_addnum(buffer, heap->num_elements, 31, 32);
 
 	/* num_bits being a generic iterator again */
 	for(num_bits = 0; num_bits < heap->num_elements; num_bits++)
 	{
 		last_node = heap->heap[num_bits];
 
-		bbuffer_addnum(buffer, last_node->c, 7, 8);
+		bytes = num_bytes(last_node->c);
+
+		bbuffer_addnum(buffer, last_node->c, (bytes * 8) - 1, bytes * 8);
 		bbuffer_addnum(buffer, last_node->count, bpn - 1, bpn);
 	}
 

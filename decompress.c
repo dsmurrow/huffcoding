@@ -32,6 +32,24 @@ void read_remaining_bytes(FILE *f, bbuffer_t *buffer)
 	}
 }
 
+void get_utf_char(unsigned int *c, bbuffer_t *buffer, unsigned int *ptr)
+{
+	char bytes_left;
+
+	if(!(*c & 0x80)) return;
+
+	if((*c & 0xF0) == 0xF0)
+		bytes_left = 3;
+	else if((*c & 0xE0) == 0xE0)
+		bytes_left = 2;
+	else
+		bytes_left = 1;
+
+	*c = *c << (bytes_left * 8);
+	while(bytes_left-- > 0)
+		*c |= (getnbits(buffer, 8, ptr) << (bytes_left * 8));
+}
+
 void fill_heap(bbuffer_t *buffer, heap_t *heap, unsigned char bpn, unsigned int *bptr)
 {
 	unsigned int i;
@@ -41,6 +59,7 @@ void fill_heap(bbuffer_t *buffer, heap_t *heap, unsigned char bpn, unsigned int 
 		heap->heap[i]->left = heap->heap[i]->right = NULL;
 
 		heap->heap[i]->c = getnbits(buffer, 8, bptr);
+		if(heap->heap[i]->c & 0x80) get_utf_char(&heap->heap[i]->c, buffer, bptr);
 		heap->heap[i]->count = getnbits(buffer, bpn, bptr);
 	}
 }
@@ -60,7 +79,25 @@ void write(bbuffer_t *buffer, cnode_t *root, unsigned int *bptr)
 
 		if(cursor->c != 0)
 		{
-			fputc(cursor->c, f);
+			/* printf("character = %x\n", cursor->c); */
+
+			if((cursor->c & 0xF0000000) == 0xF0000000)
+			{
+				fputc(cursor->c >> 24, f); /* printf("4writing %x-", cursor->c >> 24); */
+				fputc((cursor->c & ~0xFF000000) >> 16, f); /* printf("%x-", (cursor->c & ~0xFF000000) >> 16); */
+				fputc((cursor->c & ~0xFFFF0000) >> 8, f); /* printf("%x-", (cursor->c & ~0xFFFF0000) >> 8); */
+			}
+			else if((cursor->c & 0xFFE00000) == 0xE00000)
+			{
+				fputc(cursor->c >> 16, f); /* printf("3writing %x-", cursor->c >> 16); */
+				fputc((cursor->c & ~0xFF0000) >> 8, f); /* printf("%x-", (cursor->c & ~0xFF0000) >> 8); */
+			}
+			else if((cursor->c & 0xFFFFC000) == 0xC000)
+			{
+				fputc(cursor->c >> 8, f); /* printf("2writing %x-", cursor->c >> 8); */
+			}
+
+			fputc(cursor->c & 0xFF, f); /* printf("%x\n", cursor->c & 0xFF); */
 			cursor = root;
 		}
 	}
@@ -90,12 +127,13 @@ int main(int argc, char *argv[])
 	fread(&bpn, sizeof(char), 1, f);
 
 
-	/* The next 4 bytes holds information about how many of the
-	 * following bits are storing character-count data */	
+	/* The next 4 bytes holds information about how many
+	 * elements will be in the heap */
+	heap.num_elements = 0;
 	for(i = 0; i < 4; i++)
 	{
 		fread(&hold, sizeof(char), 1, f);
-		num_bits |= hold << (8 * (3 - i));
+		heap.num_elements |= hold << (8 * (3 - i));
 	}
 
 	bbuffer_init(&buffer);
@@ -107,7 +145,7 @@ int main(int argc, char *argv[])
 
 
 
-	heap.size = heap.num_elements = num_bits / (bpn + 8);
+	heap.size = heap.num_elements;
 	heap.heap = malloc(heap.size * sizeof(cnode_t*));
 
 	fill_heap(&buffer, &heap, bpn, &ptr);

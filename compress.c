@@ -4,12 +4,36 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+static unsigned int f_size = 0;
+
 void traverse_tree(cnode_t*, ctable_t*, char*, unsigned short);
 void file_to_bits(const char*, ctable_t*, bbuffer_t*);
 
+void get_utf_char(unsigned int *c, FILE *f)
+{
+	char bytes_left;
+	int temp;
+
+	if(!(*c & 0x80))
+		return;
+
+	if((*c & 0xF0) == 0xF0)
+		bytes_left = 3;
+	else if((*c & 0xE0) == 0xE0)
+		bytes_left = 2;
+	else
+		bytes_left = 1;
+
+	*c = *c << (bytes_left * 8);
+	while(bytes_left > 0 && (temp = fgetc(f)) != EOF)
+	{
+		*c |= temp << (--bytes_left * 8);
+	}
+}
+
 void readfile(const char *filename, heap_t *heap)
 {
-	int c;
+	unsigned int c;
 
 	FILE *f = fopen(filename, "r");
 	if(f == NULL)
@@ -17,7 +41,9 @@ void readfile(const char *filename, heap_t *heap)
 
 	while((c = fgetc(f)) != EOF)
 	{
-		heap_addc(heap, (char)c);
+		if(c & 0x80) get_utf_char(&c, f);
+		heap_addc(heap, c);
+		f_size++;
 	}
 
 	fclose(f);
@@ -26,6 +52,7 @@ void readfile(const char *filename, heap_t *heap)
 int main(int argc, char *argv[])
 {
 	unsigned int i;
+	double compression;
 	char *buffer, bits_left;
 	bbuffer_t bb1, bb2;
 	cnode_t *root;
@@ -43,7 +70,7 @@ int main(int argc, char *argv[])
 	root = heap_maketree(&heap);
 
 	ctable_init(&table, heap.num_elements * heap.num_elements);
-	buffer = calloc(20, sizeof(char));
+	buffer = calloc(70, sizeof(char));
 	traverse_tree(root, &table, buffer, 0);
 	free(buffer);
 
@@ -64,9 +91,12 @@ int main(int argc, char *argv[])
 
 	FILE *f = fopen("compress.out", "wb");
 
-	fwrite(bb1.buffer, sizeof(char), ((bb1.bitptr) / 8) + !!bits_left, f);
+	fwrite(bb1.buffer, sizeof(char), (bb1.bitptr / 8) + !!bits_left, f);
 
 	fclose(f);
+
+	compression = (double)(bb1.bitptr / 8 + !!bits_left) / (double)(f_size);
+	printf("Compressed file is %.1lf%% the size of the original file\n", compression * 100.0);
 
 	return 0;
 }
@@ -109,12 +139,13 @@ void traverse_tree(cnode_t *root, ctable_t *table, char *bits, unsigned short in
 
 void file_to_bits(const char *filename, ctable_t *table, bbuffer_t *buffer)
 {
-	char c;
+	unsigned int c;
 	FILE *f = fopen(filename, "r");
 	cbnode_t *table_entry;
 
 	while((c = fgetc(f)) != EOF)
 	{
+		if(c & 0x80) get_utf_char(&c, f);
 		table_entry = ctable_find(table, c);
 		bbuffer_addbits(buffer, table_entry->bits, table_entry->length);
 	}
