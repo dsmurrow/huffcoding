@@ -10,3 +10,7 @@ compile-decompress:
 run-decompress:
 	./decompress $(file)
 
+compile-all:
+	gcc -o compress bitbuffer.c heap.c ctable.c compress.c
+	gcc -o decompress bitbuffer.c heap.c decompress.c
+
