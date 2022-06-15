@@ -21,7 +21,7 @@ int ctable_init(ctable_t*, unsigned int);
 void ctable_free(ctable_t*);
 
 cbnode_t *ctable_find(ctable_t*, unsigned int);
-int ctable_insert(ctable_t*, cbnode_t);
+int ctable_insert(ctable_t*, cbnode_t*);
 
 #endif
 

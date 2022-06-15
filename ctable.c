@@ -40,7 +40,7 @@ static int expand(ctable_t *table)
 	table->size *= 2;
 
 	for(i = 0; i < table->size / 2; i++)
-		ctable_insert(table, old[i]);
+		ctable_insert(table, &old[i]);
 
 	free(old);
 
@@ -49,35 +49,38 @@ static int expand(ctable_t *table)
 
 static unsigned int hash(unsigned int c, unsigned int table_size)
 {
-	unsigned short key = c;
+	unsigned int key = c;
 	return (42227 * key + 22) % table_size;
 }
+
 
 cbnode_t *ctable_find(ctable_t *table, unsigned int c)
 {
 	unsigned int index = hash(c, table->size), i = index;
 	cbnode_t *t = table->table;
 
-	while(t[i].c != c && t[i].c != 0 && i != (index - 1 + table->size) % table->size)
+
+	while(t[i].c != c && t[i].c != 0 && (i + 1) % table->size != index)
 		i = (i + 1) % table->size;
+
 
 	return t[i].c != c ? NULL : &t[i];
 }
 
-int ctable_insert(ctable_t *table, cbnode_t node)
+int ctable_insert(ctable_t *table, cbnode_t *node)
 {
-	unsigned short i;
+	unsigned int i;
 
-	if(ctable_find(table, node.c)) return 2;
+	if(ctable_find(table, node->c)) return 2;
 
 	if(table->num_elements == table->size)
 		if(!expand(table)) return 0;
 
-	i = hash(node.c, table->size);
+	i = hash(node->c, table->size);
 	while(table->table[i].c != 0)
 		i = (i + 1) % table->size;
 	
-	table->table[i] = node;
+	table->table[i] = *node;
 
 	return 1;
 }

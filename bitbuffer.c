@@ -49,7 +49,7 @@ int bbuffer_addbit(bbuffer_t *buffer, char bit)
 	buffer->buffer[index] |= (!!bit) << shift;
 
 	if(++buffer->bitptr / 8 == buffer->size)
-		expand(buffer);
+		if(!expand(buffer)) return 0;
 
 	return 1;
 }
@@ -118,4 +118,5 @@ int bbuffer_merge(bbuffer_t *b1, bbuffer_t *b2)
 }
 
 #undef BBUFFER_INITIAL_SIZE
+
 

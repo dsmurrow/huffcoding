@@ -123,7 +123,8 @@ void traverse_tree(cnode_t *root, ctable_t *table, char *bits, unsigned short in
 		for(index = 0; index < tnode.length; index++)
 			tnode.bits[index] = bits[index];
 
-		ctable_insert(table, tnode);
+		if(tnode.c == 0x54) printf("inserted\n");
+		ctable_insert(table, &tnode);
 
 		return;
 	}
@@ -147,9 +148,14 @@ void file_to_bits(const char *filename, ctable_t *table, bbuffer_t *buffer)
 	{
 		if(c & 0x80) get_utf_char(&c, f);
 		table_entry = ctable_find(table, c);
+		if(table_entry == NULL) {
+			printf("Invalid character %X at ~%X\n", c, ftell(f));
+			exit(1);
+		}
 		bbuffer_addbits(buffer, table_entry->bits, table_entry->length);
 	}
 
 	fclose(f);
 }
+
 
