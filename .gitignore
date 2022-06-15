@@ -1,2 +1,4 @@
-!makefile
-!*.[ch]
+*.txt
+*.out
+compress
+decompress
