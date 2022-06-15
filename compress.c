@@ -115,7 +115,7 @@ void traverse_tree(cnode_t *root, ctable_t *table, char *bits, unsigned short in
 	if(root->left == NULL && root->right == NULL) /* The character nodes are always the leaves of 
 							 the tree. So this is accessed if at a leaf node */
 	{
-		cbnode_t tnode;
+		ctnode_t tnode;
 		tnode.c = root->c;
 		tnode.length = index;
 		tnode.bits = malloc(tnode.length * sizeof(char));
@@ -142,7 +142,7 @@ void file_to_bits(const char *filename, ctable_t *table, bbuffer_t *buffer)
 {
 	unsigned int c;
 	FILE *f = fopen(filename, "r");
-	cbnode_t *table_entry;
+	ctnode_t *table_entry;
 
 	while((c = fgetc(f)) != EOF)
 	{
