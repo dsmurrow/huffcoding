@@ -21,7 +21,7 @@ typedef struct heap
 }
 heap_t;
 
-int cnode_init(cnode_t*, unsigned int);
+int cnode_init(cnode_t*, unsigned int, unsigned int);
 
 int heap_init(heap_t*);
 void heap_free(heap_t*);

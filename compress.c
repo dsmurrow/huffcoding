@@ -31,20 +31,45 @@ void get_utf_char(unsigned int *c, FILE *f)
 	}
 }
 
+int load_heap(const ctable_t* table, heap_t *heap) {
+	unsigned int i;
+	cnode_t *cnode;
+
+	if(table->is_encoding) return 0;
+
+	for(i = 0; i < table->size; i++) {
+		if(table->table[i].c != 0) {
+			cnode = malloc(sizeof(cnode_t));
+			cnode_init(cnode, table->table[i].c, table->table[i].count);
+			heap_insert(heap, cnode);
+		}
+	}
+
+	return 1;
+}
+
 void readfile(const char *filename, heap_t *heap)
 {
 	unsigned int c;
+	ctable_t table;
 
 	FILE *f = fopen(filename, "r");
 	if(f == NULL)
 		return;
 
+	c = ctable_init(&table, 9216, 0);
+	if(!c) return;
+
 	while((c = fgetc(f)) != EOF)
 	{
 		if(c & 0x80) get_utf_char(&c, f);
-		heap_addc(heap, c);
+		ctable_add(&table, c, 1);
 		f_size++;
 	}
+
+	load_heap(&table, heap);
+
+	ctable_free(&table);
 
 	fclose(f);
 }
@@ -63,13 +88,14 @@ int main(int argc, char *argv[])
 
 	if(argc > 1)
 		readfile(argv[1], &heap);
+	else return 1;
 
 	bbuffer_init(&bb1);
 	heap_copyfreqs(&heap, &bb1);
 
 	root = heap_maketree(&heap);
 
-	ctable_init(&table, heap.num_elements * heap.num_elements);
+	ctable_init(&table, heap.num_elements * heap.num_elements, 1);
 	buffer = calloc(70, sizeof(char));
 	traverse_tree(root, &table, buffer, 0);
 	free(buffer);
@@ -123,7 +149,6 @@ void traverse_tree(cnode_t *root, ctable_t *table, char *bits, unsigned short in
 		for(index = 0; index < tnode.length; index++)
 			tnode.bits[index] = bits[index];
 
-		if(tnode.c == 0x54) printf("inserted\n");
 		ctable_insert(table, &tnode);
 
 		return;

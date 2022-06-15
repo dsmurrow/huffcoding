@@ -4,10 +4,10 @@
 
 #define HEAP_INITIAL_SIZE 14
 
-int cnode_init(cnode_t *node, unsigned int c)
+int cnode_init(cnode_t *node, unsigned int c, unsigned int amount)
 {
 	node->c = c;
-	node->count = 1;
+	node->count = amount;
 	node->left = NULL;
 	node->right = NULL;
 
@@ -113,6 +113,7 @@ int heap_insert(heap_t *heap, cnode_t *node)
 	return 1;
 }
 
+
 int heap_addc(heap_t *heap, unsigned int c)
 {
 	cnode_t *f = heap_find(heap, c);
@@ -128,7 +129,7 @@ int heap_addc(heap_t *heap, unsigned int c)
 	}
 
 	f = malloc(sizeof(cnode_t));
-	cnode_init(f, c);
+	cnode_init(f, c, 1);
 
 	if(!heap_insert(heap, f)) return 0;
 

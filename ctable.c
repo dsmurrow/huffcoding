@@ -2,10 +2,11 @@
 
 #include <stdlib.h>
 
-int ctable_init(ctable_t *table, unsigned int size)
+int ctable_init(ctable_t *table, unsigned int size, char is_encoding)
 {
+	table->is_encoding = is_encoding;
 	table->num_elements = 0;
-	table->size = size;
+	table->size = size < 10 ? 10 : size;
 	table->table = calloc(table->size, sizeof(ctnode_t));
 
 	if(table->table)
@@ -17,8 +18,10 @@ int ctable_init(ctable_t *table, unsigned int size)
 void ctable_free(ctable_t *table)
 {
 	unsigned int i;
-	for(i = 0; i < table->size; i++)
-		if(table->table[i].bits) free(table->table[i].bits);
+
+	if(table->is_encoding)
+		for(i = 0; i < table->size; i++)
+			if(table->table[i].bits) free(table->table[i].bits);
 
 	free(table->table);
 }
@@ -28,7 +31,7 @@ static int expand(ctable_t *table)
 	unsigned int i;
 	ctnode_t *old = table->table;
 
-	table->table = calloc(table->size * 2, sizeof(ctnode_t));
+	table->table = calloc((table->size * table->size) / 2, sizeof(ctnode_t));
 
 	if(!table->table)
 	{
@@ -40,7 +43,12 @@ static int expand(ctable_t *table)
 	table->size *= 2;
 
 	for(i = 0; i < table->size / 2; i++)
-		ctable_insert(table, &old[i]);
+	{
+		if(table->is_encoding)
+			ctable_insert(table, &old[i]);
+		else
+			ctable_add(table, old[i].c, old[i].count);
+	}
 
 	free(old);
 
@@ -81,6 +89,33 @@ int ctable_insert(ctable_t *table, ctnode_t *node)
 		i = (i + 1) % table->size;
 	
 	table->table[i] = *node;
+
+	return 1;
+}
+
+int ctable_add(ctable_t *table, unsigned int c, unsigned int amt) {
+	unsigned int i;
+	ctnode_t *found;
+
+	if(table->is_encoding) return 0;
+
+	found = ctable_find(table, c);
+	if(found != NULL) {
+		found->count += amt;
+		return 2;
+	}
+
+	if(table->num_elements == table->size)
+		if(!expand(table)) return 0;
+
+	i = hash(c, table->size);
+	while(table->table[i].c != 0)
+		i = (i + 1) % table->size;
+
+	/* found is just an alias now */
+	found = &table->table[i];
+	found->c = c;
+	found->count = amt;
 
 	return 1;
 }
