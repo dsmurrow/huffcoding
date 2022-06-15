@@ -34,15 +34,6 @@ void heap_free(heap_t *heap)
 	free(heap->heap);
 }
 
-cnode_t *heap_find(heap_t *heap, unsigned int c)
-{
-	unsigned int i;
-	for(i = 0; i < heap->num_elements && heap->heap[i]->c != c; i++);
-
-	if(i == heap->num_elements) return NULL;
-
-	return heap->heap[i];
-}
 
 static int heap_expand(heap_t *heap)
 {
@@ -111,29 +102,6 @@ int heap_insert(heap_t *heap, cnode_t *node)
 	sift_up(heap, heap->num_elements++);
 
 	return 1;
-}
-
-
-int heap_addc(heap_t *heap, unsigned int c)
-{
-	cnode_t *f = heap_find(heap, c);
-	if(f)
-	{
-		unsigned int i;
-		f->count++;
-
-		for(i = 0; i < heap->num_elements && heap->heap[i] != f; i++);
-		heapify(heap, i);
-
-		return 1;
-	}
-
-	f = malloc(sizeof(cnode_t));
-	cnode_init(f, c, 1);
-
-	if(!heap_insert(heap, f)) return 0;
-
-	return 2;
 }
 
 cnode_t *heap_getmin(heap_t *heap)

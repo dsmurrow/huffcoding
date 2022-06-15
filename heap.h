@@ -26,10 +26,7 @@ int cnode_init(cnode_t*, unsigned int, unsigned int);
 int heap_init(heap_t*);
 void heap_free(heap_t*);
 
-cnode_t *heap_find(heap_t*, unsigned int);
-
 int heap_insert(heap_t*, cnode_t*);
-int heap_addc(heap_t*, unsigned int);
 
 cnode_t *heap_getmin(heap_t*);
 
