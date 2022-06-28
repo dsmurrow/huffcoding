@@ -92,6 +92,13 @@ static void sift_up(heap_t *heap, unsigned int i)
 	#undef GET_PARENT
 }
 
+void heap_sort(heap_t *heap)
+{
+	unsigned int i;
+	for(i = 0; i < heap->num_elements; i++)
+		heapify(heap, i);
+}
+
 int heap_insert(heap_t *heap, cnode_t *node)
 {
 	if(heap->num_elements == heap->size)

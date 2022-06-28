@@ -62,6 +62,8 @@ void fill_heap(bbuffer_t *buffer, heap_t *heap, unsigned char bpn, unsigned int 
 		if(heap->heap[i]->c & 0x80) get_utf_char(&heap->heap[i]->c, buffer, bptr);
 		heap->heap[i]->count = getnbits(buffer, bpn, bptr);
 	}
+
+	heap_sort(heap);
 }
 
 void write(bbuffer_t *buffer, cnode_t *root, unsigned int *bptr)
