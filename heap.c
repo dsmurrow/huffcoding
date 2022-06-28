@@ -50,6 +50,16 @@ static int heap_expand(heap_t *heap)
 	return 0;
 }
 
+static int lt(const cnode_t *lh, const cnode_t *rh)
+{
+	if(lh->count == rh->count)
+	{
+		return lh->c < rh->c;
+	}
+	
+	return lh->count < rh->count;
+}
+
 static void heapify(heap_t *heap, unsigned int i)
 {
 	cnode_t **arr = heap->heap;
@@ -57,10 +67,10 @@ static void heapify(heap_t *heap, unsigned int i)
 	unsigned int l = 2 * i + 1;
 	unsigned int r = 2 * i + 2;
 
-	if(l < heap->num_elements && arr[l]->count < arr[smallest]->count)
+	if(l < heap->num_elements && lt(arr[l], arr[smallest]))
 		smallest = l;
 
-	if(r < heap->num_elements && arr[r]->count < arr[smallest]->count)
+	if(r < heap->num_elements && lt(arr[r], arr[smallest]))
 		smallest = r;
 
 	if(smallest != i)
@@ -79,7 +89,7 @@ static void sift_up(heap_t *heap, unsigned int i)
 
 	unsigned int parent = GET_PARENT(i);
 	cnode_t *swp;
-	while(i > 0 && heap->heap[i]->count < heap->heap[parent]->count)
+	while(i > 0 && lt(heap->heap[i], heap->heap[parent]))
 	{
 		swp = heap->heap[parent];
 		heap->heap[parent] = heap->heap[i];
