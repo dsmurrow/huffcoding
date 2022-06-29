@@ -42,6 +42,10 @@ int main(int argc, char *argv[])
 	bits_left = (bb2.bitptr + bb1.bitptr + 3) % 8 ? 8 - ((bb2.bitptr + bb1.bitptr + 3) % 8) : 0;
 	bbuffer_addnum(&bb1, bits_left, 2, 3);
 
+	#ifdef DEBUG
+	fprintf(stderr, "bb1.ptr = %u\nbb2.ptr = %u\n", bb1.bitptr - 3, bb2.bitptr);
+	fprintf(stderr, "%d bits left\n", bits_left);
+	#endif
 
 	/* Merge both buffers to prepare for writing to file */
 	bbuffer_merge(&bb1, &bb2);

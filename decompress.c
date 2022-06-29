@@ -4,6 +4,7 @@ int main(int argc, char *argv[])
 {
 	#ifdef DEBUG
 	char debug_buffer[70];
+	unsigned char bits_left;
 	ctable_t debug_table;
 	#endif
 
@@ -50,7 +51,13 @@ int main(int argc, char *argv[])
 
 	fill_heap(&buffer, &heap, bpn, &ptr);
 
+	#ifdef DEBUG
+	bits_left = getnbits(&buffer, 3, &ptr);
+	fprintf(stderr, "%d bits left\n", bits_left);
+	buffer.bitptr -= bits_left;
+	#else
 	buffer.bitptr -= getnbits(&buffer, 3, &ptr);
+	#endif
 
 	tree = heap_maketree(&heap);
 
