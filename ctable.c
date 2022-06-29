@@ -93,7 +93,8 @@ int ctable_insert(ctable_t *table, ctnode_t *node)
 	return 1;
 }
 
-int ctable_add(ctable_t *table, unsigned int c, unsigned int amt) {
+int ctable_add(ctable_t *table, unsigned int c, unsigned int amt)
+{
 	unsigned int i;
 	ctnode_t *found;
 
@@ -119,4 +120,42 @@ int ctable_add(ctable_t *table, unsigned int c, unsigned int amt) {
 
 	return 1;
 }
+
+#ifdef DEBUG
+
+#include <stdio.h>
+void ctable_print(const ctable_t *table)
+{
+	int first = 1;
+	unsigned int i;
+
+	fprintf(stderr, "ctable_t { ");
+	
+	
+	for(i = 0; i < table->size; i++)
+	{
+		if(table->table[i].c != 0)
+		{
+			if(!first)
+				fprintf(stderr, ", ");
+			else
+				first = 0;
+
+			fprintf(stderr, "%x: ", table->table[i].c);
+
+			if(table->is_encoding)
+			{
+				unsigned int b;
+				for(b = 0; b < table->table[i].length; b++)
+					fprintf(stderr, "%c", table->table[i].bits[b] + '0');
+			}
+			else
+				fprintf(stderr, "%d", table->table[i].count);
+		}
+	}
+
+	fprintf(stderr, " }\n");
+}
+
+#endif
 

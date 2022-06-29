@@ -6,8 +6,41 @@
 
 static unsigned int f_size = 0;
 
-void traverse_tree(cnode_t*, ctable_t*, char*, unsigned short);
-void file_to_bits(const char*, ctable_t*, bbuffer_t*);
+/**
+ * Recursively traverse the tree to find the Huffman encoding values of the characters
+ * in the text.
+ *
+ * @param root	Root of the Huffman tree
+ * @param table	Hash table that will store the Huffman encodings
+ * @param bits 	Char buffer to store the working Huffman encoding
+ * @param index	Current index in the bit buffer
+ */
+void traverse_tree(cnode_t *root, ctable_t *table, char *bits, unsigned short index)
+{
+	if(root->left == NULL && root->right == NULL) /* The character nodes are always the leaves of 
+							 the tree. So this is accessed if at a leaf node */
+	{
+		ctnode_t tnode;
+		tnode.c = root->c;
+		tnode.length = index;
+		tnode.bits = malloc(tnode.length * sizeof(char));
+
+		for(index = 0; index < tnode.length; index++)
+			tnode.bits[index] = bits[index];
+
+		ctable_insert(table, &tnode);
+
+		return;
+	}
+
+	/* Traverse left */
+	bits[index] = 0;
+	traverse_tree(root->left, table, bits, index + 1);
+
+	/* Traverse right */
+	bits[index] = 1;
+	traverse_tree(root->right, table, bits, index + 1);
+}
 
 void get_utf_char(unsigned int *c, FILE *f)
 {
@@ -30,6 +63,28 @@ void get_utf_char(unsigned int *c, FILE *f)
 		*c |= temp << (--bytes_left * 8);
 	}
 }
+
+void file_to_bits(const char *filename, ctable_t *table, bbuffer_t *buffer)
+{
+	unsigned int c;
+	FILE *f = fopen(filename, "r");
+	ctnode_t *table_entry;
+
+	while((c = fgetc(f)) != EOF)
+	{
+		if(c & 0x80) get_utf_char(&c, f);
+		table_entry = ctable_find(table, c);
+		if(table_entry == NULL) {
+			printf("Invalid character %X at ~%X\n", c, ftell(f));
+			exit(1);
+		}
+		bbuffer_addbits(buffer, table_entry->bits, table_entry->length);
+	}
+
+	fclose(f);
+}
+
+
 
 int load_heap(const ctable_t* table, heap_t *heap) {
 	unsigned int i;
@@ -100,6 +155,10 @@ int main(int argc, char *argv[])
 	traverse_tree(root, &table, buffer, 0);
 	free(buffer);
 
+	#ifdef DEBUG
+	ctable_print(&table);
+	#endif
+
 	/* Get the text from the file and put the huffman encodings of the
 	 * characters into the seconds bit buffer */
 	bbuffer_init(&bb2);
@@ -127,60 +186,8 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-/**
- * Recursively traverse the tree to find the Huffman encoding values of the characters
- * in the text.
- *
- * @param root	Root of the Huffman tree
- * @param table	Hash table that will store the Huffman encodings
- * @param bits 	Char buffer to store the working Huffman encoding
- * @param index	Current index in the bit buffer
- */
-void traverse_tree(cnode_t *root, ctable_t *table, char *bits, unsigned short index)
-{
-	if(root->left == NULL && root->right == NULL) /* The character nodes are always the leaves of 
-							 the tree. So this is accessed if at a leaf node */
-	{
-		ctnode_t tnode;
-		tnode.c = root->c;
-		tnode.length = index;
-		tnode.bits = malloc(tnode.length * sizeof(char));
 
-		for(index = 0; index < tnode.length; index++)
-			tnode.bits[index] = bits[index];
 
-		ctable_insert(table, &tnode);
 
-		return;
-	}
-
-	/* Traverse left */
-	bits[index] = 0;
-	traverse_tree(root->left, table, bits, index + 1);
-
-	/* Traverse right */
-	bits[index] = 1;
-	traverse_tree(root->right, table, bits, index + 1);
-}
-
-void file_to_bits(const char *filename, ctable_t *table, bbuffer_t *buffer)
-{
-	unsigned int c;
-	FILE *f = fopen(filename, "r");
-	ctnode_t *table_entry;
-
-	while((c = fgetc(f)) != EOF)
-	{
-		if(c & 0x80) get_utf_char(&c, f);
-		table_entry = ctable_find(table, c);
-		if(table_entry == NULL) {
-			printf("Invalid character %X at ~%X\n", c, ftell(f));
-			exit(1);
-		}
-		bbuffer_addbits(buffer, table_entry->bits, table_entry->length);
-	}
-
-	fclose(f);
-}
 
 

@@ -33,5 +33,9 @@ int ctable_insert(ctable_t*, ctnode_t*);
 
 int ctable_add(ctable_t*, unsigned int, unsigned int);
 
+#ifdef DEBUG
+void ctable_print(const ctable_t*);
+#endif
+
 #endif
 
