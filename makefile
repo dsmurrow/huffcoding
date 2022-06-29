@@ -15,7 +15,7 @@ DBG_DECOMP = dbg_decomp
 compile-all: compile-compress compile-decompress
 
 compile-compress:
-	$(CC) -o $(COMP_EX) $(COMP_FILES)
+	$(CC) $(flags) -o $(COMP_EX) $(COMP_FILES)
 
 run-compress:
 	./compress $(file)
@@ -27,7 +27,7 @@ debug-compress:
 
 
 compile-decompress:
-	$(CC) -o $(DECOMP_EX) $(ALWAYS) decompress.c
+	$(CC) $(flags) -o $(DECOMP_EX) $(ALWAYS) decompress.c
 
 run-decompress:
 	./decompress $(file)
