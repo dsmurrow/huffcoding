@@ -1,11 +1,9 @@
 CC=gcc
 DBG=gdb
 
-ALWAYS = bitbuffer.c heap.c
+ALWAYS = bitbuffer.c ctable.c heap.c helpers.c
 COMP_EX = compress
 DECOMP_EX = decompress
-
-COMP_FILES = $(ALWAYS) ctable.c compress.c
 
 DBG_FLAGS = -ex run --batch --args
 DBG_FLAG_CC = -g
@@ -15,7 +13,7 @@ DBG_DECOMP = dbg_decomp
 compile-all: compile-compress compile-decompress
 
 compile-compress:
-	$(CC) $(flags) -o $(COMP_EX) $(COMP_FILES)
+	$(CC) $(flags) -o $(COMP_EX) $(ALWAYS) compress.c
 
 run-compress:
 	./compress $(file)
