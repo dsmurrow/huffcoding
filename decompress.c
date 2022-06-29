@@ -2,6 +2,11 @@
 
 int main(int argc, char *argv[])
 {
+	#ifdef DEBUG
+	char debug_buffer[70];
+	ctable_t debug_table;
+	#endif
+
 	unsigned char bpn, hold;
 	unsigned int i, num_bits = 0, ptr = 0;
 	FILE *f;
@@ -48,6 +53,20 @@ int main(int argc, char *argv[])
 	buffer.bitptr -= getnbits(&buffer, 3, &ptr);
 
 	tree = heap_maketree(&heap);
+
+	#ifdef DEBUG
+	/* print heap */
+	heap_print(&heap);
+
+	/* print table */
+	ctable_init(&debug_table, heap.size * heap.size, 1);
+
+	traverse_tree(tree, &debug_table, debug_buffer, 0);
+	ctable_print(&debug_table);
+
+	ctable_free(&debug_table);
+	#endif
+
 
 	write(&buffer, tree, &ptr);
 

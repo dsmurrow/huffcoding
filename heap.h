@@ -36,5 +36,9 @@ cnode_t *heap_maketree(heap_t*);
 
 int heap_copyfreqs(heap_t*, bbuffer_t*);
 
+#ifdef DEBUG
+void heap_print(const heap_t*);
+#endif
+
 #endif
 

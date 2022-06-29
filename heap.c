@@ -1,5 +1,6 @@
 #include "heap.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 
 #define HEAP_INITIAL_SIZE 14
@@ -104,9 +105,9 @@ static void sift_up(heap_t *heap, unsigned int i)
 
 void heap_sort(heap_t *heap)
 {
-	unsigned int i;
-	for(i = 0; i < heap->num_elements; i++)
-		heapify(heap, i);
+	int i;
+	for(i = heap->num_elements - 1; i >= 0; i--)
+		sift_up(heap, i);
 }
 
 int heap_insert(heap_t *heap, cnode_t *node)
@@ -238,6 +239,27 @@ cnode_t *heap_maketree(heap_t *heap)
 
 	return left;
 }
+
+#ifdef DEBUG
+//#include <stdio.h>
+void heap_print(const heap_t *heap)
+{
+	int first = 1;
+	unsigned int i;
+
+	fprintf(stderr, "heap_t { ");
+
+	for(i = 0; i < heap->num_elements; i++)
+	{
+		if(!first) fprintf(stderr, ", ");
+		else first = 0;
+
+		fprintf(stderr, "%x: %d", heap->heap[i]->c, heap->heap[i]->count);
+	}
+
+	fprintf(stderr, " }\n");
+}
+#endif
 
 #undef HEAP_INITIAL_SIZE
 
