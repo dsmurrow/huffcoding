@@ -5,6 +5,7 @@
 int main(int argc, char *argv[])
 {
 	unsigned int i;
+	long int file_size;
 	double compression;
 	char *buffer, bits_left;
 	bbuffer_t bb1, bb2;
@@ -15,7 +16,7 @@ int main(int argc, char *argv[])
 	heap_init(&heap);
 
 	if(argc > 1)
-		readfile(argv[1], &heap);
+		file_size = readfile(argv[1], &heap);
 	else return 1;
 
 	bbuffer_init(&bb1);
@@ -57,7 +58,12 @@ int main(int argc, char *argv[])
 
 	fclose(f);
 
-	compression = (double)(bb1.bitptr / 8 + !!bits_left) / (double)(f_size);
+	#ifdef DEBUG
+	fprintf(stderr, "old file size = %u bytes\n", file_size);
+	fprintf(stderr, "new file size = %u bytes\n", (bb1.bitptr + bits_left) / 8);
+	#endif
+
+	compression = (double)((bb1.bitptr + bits_left) / 8) / (double)(file_size);
 	printf("Compressed file is %.1lf%% the size of the original file\n", compression * 100.0);
 
 	return 0;

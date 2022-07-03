@@ -1,7 +1,5 @@
 #include "helpers.h"
 
-unsigned int f_size = 0;
-
 void fill_heap(bbuffer_t *buffer, heap_t *heap, unsigned char bpn, unsigned int *bptr)
 {
 	unsigned int i;
@@ -150,30 +148,34 @@ int load_heap(const ctable_t* table, heap_t *heap) {
 	return 1;
 }
 
-void readfile(const char *filename, heap_t *heap)
+long int readfile(const char *filename, heap_t *heap)
 {
 	unsigned int c;
+	long int file_size;
 	ctable_t table;
 
 	FILE *f = fopen(filename, "r");
 	if(f == NULL)
-		return;
+		return 0l;
 
 	c = ctable_init(&table, 9216, 0);
-	if(!c) return;
+	if(!c) return 0l;
 
 	while((c = fgetc(f)) != EOF)
 	{
 		if(c & 0x80) get_utf_char_from_file(&c, f);
 		ctable_add(&table, c, 1);
-		f_size++;
 	}
 
 	load_heap(&table, heap);
 
 	ctable_free(&table);
 
+	fseek(f, 0l, SEEK_END);
+	file_size = ftell(f);
 	fclose(f);
+
+	return file_size;
 }
 
 void read_remaining_bytes(FILE *f, bbuffer_t *buffer)

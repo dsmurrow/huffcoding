@@ -7,10 +7,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-extern unsigned int f_size;
-
-
-
 void fill_heap(bbuffer_t*, heap_t*, unsigned char, unsigned int*);
 
 void traverse_tree(cnode_t*, ctable_t*, char*, unsigned short);
@@ -24,7 +20,7 @@ unsigned int getnbits(bbuffer_t*, char, unsigned int*);
 
 int load_heap(const ctable_t*, heap_t*);
 
-void readfile(const char*, heap_t*);
+long int readfile(const char*, heap_t*);
 
 void read_remaining_bytes(FILE*, bbuffer_t*);
 
